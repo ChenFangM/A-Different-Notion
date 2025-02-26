@@ -7,28 +7,38 @@ const themes = {
     button: 'bg-blue-600 hover:bg-blue-700',
     text: 'text-gray-900',
     secondaryText: 'text-gray-700',
-    toggleButton: 'bg-indigo-100 hover:bg-indigo-200',
+    toggleButton: 'bg-indigo-100 hover:bg-indigo-200 text-gray-700',
+    error: 'bg-red-50 text-red-900',
+    success: 'bg-green-50 text-green-900',
     editor: {
       background: 'bg-white',
       text: 'text-gray-900',
       border: 'border-gray-200',
       lineNumbers: 'text-gray-400',
-      cursor: 'border-black'
+      carat: 'gray',
+      selection: 'bg-blue-200',
+      highlight: 'bg-yellow-100',
+      statusBar: 'bg-gray-100 text-gray-600',
     }
   },
   dark: {
     background: 'bg-slate-900',
     nav: 'bg-slate-800',
-    button: 'bg-emerald-500 hover:bg-emerald-600',
+    button: 'bg-blue-600 hover:bg-blue-700',
     text: 'text-white',
     secondaryText: 'text-gray-200',
-    toggleButton: 'bg-slate-700 hover:bg-slate-600',
+    toggleButton: 'bg-slate-700 hover:bg-slate-600 text-white',
+    error: 'bg-red-900/20 text-red-200',
+    success: 'bg-green-900/20 text-green-200',
     editor: {
       background: 'bg-slate-800',
       text: 'text-gray-100',
       border: 'border-slate-600',
       lineNumbers: 'text-gray-500',
-      cursor: 'border-white'
+      carat: 'white',
+      selection: 'bg-blue-500/30',
+      highlight: 'bg-yellow-500/20',
+      statusBar: 'bg-gray-700 text-gray-300',
     }
   }
 }

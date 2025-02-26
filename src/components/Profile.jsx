@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../config/supabaseClient'
+import { useTheme } from '../context/ThemeContext'
 
 export default function Profile({ session }) {
   const [loading, setLoading] = useState(false)
@@ -11,6 +12,7 @@ export default function Profile({ session }) {
   const [showPassword, setShowPassword] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const { theme } = useTheme()
 
   useEffect(() => {
     getProfile()
@@ -141,137 +143,117 @@ export default function Profile({ session }) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-6">Profile Settings</h2>
+    <div className={`p-6 rounded-lg shadow-lg ${theme.editor.background} ${theme.text}`}>
+      <h2 className={`text-2xl font-bold mb-6 ${theme.text}`}>Profile Settings</h2>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className={`mt-4 p-4 rounded ${theme.error}`}>
           {error}
         </div>
       )}
-
       {success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        <div className="mt-4 p-4 rounded bg-green-100 text-green-900">
           {success}
         </div>
       )}
 
       <div className="mb-8">
-        <div className="flex items-center space-x-4">
-          <div className="flex-grow">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
-              Username
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username (letters and numbers only)"
-            />
-          </div>
+        <h3 className={`text-xl font-semibold mb-4 ${theme.secondaryText}`}>Username</h3>
+        <div className="flex gap-4">
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className={`flex-1 px-4 py-2 rounded border ${theme.editor.border} ${theme.editor.background} ${theme.text}`}
+          />
           <button
             onClick={updateUsername}
             disabled={loading}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline h-10 mt-7"
+            className={`px-4 py-2 rounded ${theme.button} text-white font-medium`}
           >
-            {loading ? 'Updating...' : 'Update'}
+            {loading ? 'Saving...' : 'Save'}
           </button>
         </div>
-        <p className="text-sm text-gray-500 mt-1">
-          Only letters and numbers allowed, 3-20 characters
-        </p>
       </div>
 
-      <h3 className="text-xl font-bold mb-4">Change Password</h3>
-      <form onSubmit={updatePassword} className="mb-8">
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newPassword">
-            New Password
-          </label>
-          <div className="relative">
+      <div className="mb-8">
+        <h3 className={`text-xl font-semibold mb-4 ${theme.secondaryText}`}>Change Password</h3>
+        <div className="space-y-4">
+          <div>
             <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="newPassword"
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              required
+              placeholder="New Password"
+              className={`w-full px-4 py-2 rounded border ${theme.editor.border} ${theme.editor.background} ${theme.text}`}
             />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 px-3 flex items-center"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? '👁️' : '👁️‍🗨️'}
-            </button>
           </div>
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirmNewPassword">
-            Confirm New Password
-          </label>
-          <div className="relative">
+          <div>
             <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="confirmNewPassword"
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               value={confirmNewPassword}
               onChange={(e) => setConfirmNewPassword(e.target.value)}
-              required
+              placeholder="Confirm New Password"
+              className={`w-full px-4 py-2 rounded border ${theme.editor.border} ${theme.editor.background} ${theme.text}`}
             />
           </div>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={updatePassword}
+              disabled={loading}
+              className={`px-4 py-2 rounded ${theme.button} text-white font-medium`}
+            >
+              {loading ? 'Updating...' : 'Update Password'}
+            </button>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={showPassword}
+                onChange={(e) => setShowPassword(e.target.checked)}
+                className="rounded"
+              />
+              <span className={theme.secondaryText}>Show password</span>
+            </label>
+          </div>
         </div>
+      </div>
 
-        <button
-          type="submit"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          disabled={loading}
-        >
-          {loading ? 'Updating...' : 'Update Password'}
-        </button>
-      </form>
-
-      <div className="border-t pt-8">
-        <h3 className="text-xl font-bold mb-4 text-red-600">Delete Account</h3>
+      <div>
+        <h3 className={`text-xl font-semibold mb-4 ${theme.secondaryText}`}>Delete Account</h3>
         {!showDeleteConfirm ? (
           <button
-            type="button"
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             onClick={() => setShowDeleteConfirm(true)}
+            className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white font-medium"
           >
             Delete Account
           </button>
         ) : (
-          <div>
-            <p className="text-gray-700 mb-4">
-              This action cannot be undone. Type "DELETE" to confirm:
+          <div className="space-y-4">
+            <p className={`${theme.text}`}>
+              To confirm deletion, please type "delete my account" below:
             </p>
             <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
               type="text"
               value={deleteConfirmText}
               onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder="Type DELETE to confirm"
+              className={`w-full px-4 py-2 rounded border ${theme.editor.border} ${theme.editor.background} ${theme.text}`}
             />
-            <div className="flex space-x-4">
+            <div className="flex gap-4">
               <button
-                type="button"
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                 onClick={deleteAccount}
-                disabled={loading}
+                disabled={loading || deleteConfirmText !== 'DELETE'}
+                className={`px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white font-medium ${
+                  (loading || deleteConfirmText !== 'DELETE') && 'opacity-50 cursor-not-allowed'
+                }`}
               >
                 {loading ? 'Deleting...' : 'Confirm Delete'}
               </button>
               <button
-                type="button"
-                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                 onClick={() => {
                   setShowDeleteConfirm(false)
                   setDeleteConfirmText('')
                 }}
+                className={`px-4 py-2 rounded ${theme.button} text-white font-medium`}
               >
                 Cancel
               </button>

@@ -1,13 +1,60 @@
-/* Custom Prism.js theme */
+/* Light Theme */
+:root {
+  --background: #FFFFFF;
+  --text-primary: #252526;
+  --comment: #6B7280;
+  --keyword: #FF1493;  /* Deep pink */
+  --string: #FF4500;   /* Orange red */
+  --number: #9333EA;   /* Vibrant purple */
+  --function: #4169E1; /* Royal blue */
+  --operator: #2E8B57; /* Sea green */
+  --class: #FF8C00;    /* Dark orange */
+  --variable: #4B5563;
+}
+
+/* Dark Theme */
+.dark {
+  --background: #252526;
+  --text-primary: #FFFFFF;
+  --comment: #6B7280;
+  --keyword: #569CD6;
+  --string: #CE9178;
+  --number: #B5CEA8;
+  --function: #DCDCAA;
+  --operator: #FFFFFF;
+  --class: #4EC9B0;
+  --variable: #FFFFFF;
+}
+
+pre[class*="language-"],
+code[class*="language-"] {
+  color: var(--text-primary);
+  font-family: 'Fira Code', Consolas, Monaco, monospace;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  line-height: 1.5;
+  tab-size: 4;
+  hyphens: none;
+  background: none;
+}
+
+/* Token styles */
 .token.comment,
 .token.prolog,
 .token.doctype,
 .token.cdata {
-  color: #6a9955;
+  color: var(--comment);
+  font-style: italic;
 }
 
 .token.punctuation {
-  color: #d4d4d4;
+  color: var(--text-primary);
+}
+
+.token.namespace {
+  opacity: 0.7;
 }
 
 .token.property,
@@ -17,7 +64,7 @@
 .token.constant,
 .token.symbol,
 .token.deleted {
-  color: #b5cea8;
+  color: var(--number);
 }
 
 .token.selector,
@@ -26,7 +73,7 @@
 .token.char,
 .token.builtin,
 .token.inserted {
-  color: #ce9178;
+  color: var(--string);
 }
 
 .token.operator,
@@ -34,35 +81,30 @@
 .token.url,
 .language-css .token.string,
 .style .token.string {
-  color: #d4d4d4;
+  color: var(--operator);
 }
 
 .token.atrule,
 .token.attr-value,
 .token.keyword {
-  color: #569cd6;
+  color: var(--keyword);
+  font-weight: 600;
 }
 
 .token.function,
 .token.class-name {
-  color: #dcdcaa;
+  color: var(--function);
 }
 
 .token.regex,
 .token.important,
 .token.variable {
-  color: #9cdcfe;
+  color: var(--variable);
 }
 
-.token.important,
-.token.bold {
-  font-weight: bold;
-}
-
-.token.italic {
-  font-style: italic;
-}
-
-.token.entity {
-  cursor: help;
+/* Selection */
+code[class*="language-"]::selection,
+code[class*="language-"] ::selection,
+.token::selection {
+  background: rgba(29, 78, 216, 0.15);
 }

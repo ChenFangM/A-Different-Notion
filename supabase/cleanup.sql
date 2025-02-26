@@ -15,6 +15,9 @@ DO $$
 BEGIN
     -- Delete all objects in code-segments bucket
     DELETE FROM storage.objects WHERE bucket_id = 'code-segments';
+EXCEPTION
+    WHEN undefined_table THEN
+        NULL;
 END $$;
 
 -- Drop storage policies
@@ -23,9 +26,20 @@ DROP POLICY IF EXISTS "Users can read their own files" ON storage.objects;
 DROP POLICY IF EXISTS "Users can update their own files" ON storage.objects;
 DROP POLICY IF EXISTS "Users can delete their own files" ON storage.objects;
 
--- Clear any remaining triggers
-DROP TRIGGER IF EXISTS handle_updated_at ON public.profiles;
-DROP TRIGGER IF EXISTS handle_updated_at ON public.code_segments;
+-- Drop triggers
+DO $$
+BEGIN
+    DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;
+EXCEPTION
+    WHEN undefined_table THEN NULL;
+END $$;
 
--- Clear any remaining functions
-DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
+DO $$
+BEGIN
+    DROP TRIGGER IF EXISTS update_code_segments_updated_at ON public.code_segments;
+EXCEPTION
+    WHEN undefined_table THEN NULL;
+END $$;
+
+-- Drop extensions last (this will also drop dependent functions)
+DROP EXTENSION IF EXISTS moddatetime CASCADE;

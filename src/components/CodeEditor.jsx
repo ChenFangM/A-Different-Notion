@@ -12,6 +12,7 @@ export default function CodeEditor({ segmentType = 'component', onPreviewCodeCha
   const [saving, setSaving] = useState(false)
   const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 })
   const [isFocused, setIsFocused] = useState(false)
+  const [currentFilePath, setCurrentFilePath] = useState(null)
   const editorRef = useRef(null)
   const codeRef = useRef(null)
   const { theme, currentTheme } = useTheme()
@@ -39,25 +40,7 @@ export default function CodeEditor({ segmentType = 'component', onPreviewCodeCha
           .limit(1)
           .single()
 
-        if (queryError && queryError.code !== 'PGRST116') { // PGRST116 is "not found" error
-          throw queryError
-        }
-
-        if (segment?.file_path) {
-          // Download the code content
-          const { data, error: downloadError } = await supabase.storage
-            .from('code-segments')
-            .download(segment.file_path)
-
-          if (downloadError) throw downloadError
-
-          // Read the file content
-          const content = await data.text()
-          setContent(content)
-          setPreviewCode(content)
-        } else {
-          // Set default code for new segments
-          const defaultCode = `function elem() {
+        const defaultCode = `function elem() {
   return React.createElement(
     'div',
     { style: { padding: '20px', textAlign: 'center' } },
@@ -73,8 +56,56 @@ export default function CodeEditor({ segmentType = 'component', onPreviewCodeCha
     )
   )
 }`
+
+        // If no segment exists or there's a not found error
+        if (!segment || (queryError && queryError.code === 'PGRST116')) {
+          // Generate initial filename
+          const timestamp = new Date().getTime()
+          const filename = `${user.id}/${segmentType}/${timestamp}.jsx`
+          setCurrentFilePath(filename)
+
+          // Upload default code to storage
+          const { error: uploadError } = await supabase.storage
+            .from('code-segments')
+            .upload(filename, defaultCode, {
+              contentType: 'text/jsx',
+              upsert: true
+            })
+
+          if (uploadError) throw uploadError
+
+          // Create initial code segment
+          const { error: insertError } = await supabase
+            .from('code_segments')
+            .insert({
+              user_id: user.id,
+              segment_type: segmentType,
+              title: 'Code Editor',
+              file_path: filename,
+              language: 'jsx',
+              is_public: false,
+              updated_at: new Date().toISOString()
+            })
+
+          if (insertError) throw insertError
+
           setContent(defaultCode)
           setPreviewCode(defaultCode)
+        } else if (queryError) {
+          throw queryError
+        } else {
+          setCurrentFilePath(segment.file_path)
+          // Download the code content
+          const { data, error: downloadError } = await supabase.storage
+            .from('code-segments')
+            .download(segment.file_path)
+
+          if (downloadError) throw downloadError
+
+          // Read the file content
+          const content = await data.text()
+          setContent(content)
+          setPreviewCode(content)
         }
       } catch (err) {
         console.error('Error loading saved code:', err)
@@ -158,34 +189,40 @@ export default function CodeEditor({ segmentType = 'component', onPreviewCodeCha
         throw new Error('No authenticated user found')
       }
 
-      // Generate filename with timestamp
-      const timestamp = new Date().getTime()
-      const filename = `${user.id}/${segmentType}/${timestamp}.jsx`
+      // If we don't have a file path, create one
+      if (!currentFilePath) {
+        const timestamp = new Date().getTime()
+        const filename = `${user.id}/${segmentType}/${timestamp}.jsx`
+        setCurrentFilePath(filename)
+      }
 
-      // Upload code to storage bucket
+      // Upload code to storage bucket first
       const { error: uploadError } = await supabase.storage
         .from('code-segments')
-        .upload(filename, content, {
+        .upload(currentFilePath, content, {
           contentType: 'text/jsx',
           upsert: true
         })
 
       if (uploadError) throw uploadError
 
-      // Save metadata to code_segments table
-      const { error: dbError } = await supabase
+      // Now create/update the database record
+      const { error: upsertError } = await supabase
         .from('code_segments')
-        .insert({
+        .upsert({
           user_id: user.id,
           segment_type: segmentType,
-          title: 'Code Editor', 
-          file_path: filename,
+          title: `Code Editor ${new Date().toISOString()}`,
+          file_path: currentFilePath,
           language: 'jsx',
           is_public: false,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,segment_type,title',
+          ignoreDuplicates: false
         })
 
-      if (dbError) throw dbError
+      if (upsertError) throw upsertError
 
       setError(null)
     } catch (err) {
@@ -212,7 +249,7 @@ export default function CodeEditor({ segmentType = 'component', onPreviewCodeCha
         <div className="flex items-center space-x-2">
           <button
             onClick={saveContent}
-            className={`px-2 py-1 text-xs rounded ${theme.button} text-white transition-colors`}
+            className={`px-2 py-1 text-xs rounded ${theme.button} ${theme['button-text']} transition-colors`}
             disabled={saving}
           >
             {saving ? 'Saving...' : 'Save'}

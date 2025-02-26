@@ -1,5 +1,8 @@
--- Create profiles table if it doesn't exist
-CREATE TABLE IF NOT EXISTS public.profiles (
+-- Drop existing table if it exists
+DROP TABLE IF EXISTS public.profiles CASCADE;
+
+-- Create profiles table
+CREATE TABLE public.profiles (
     id UUID REFERENCES auth.users PRIMARY KEY,
     username TEXT UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,

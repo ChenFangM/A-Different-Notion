@@ -33,16 +33,39 @@ export default function Profile({ session }) {
 
   const getProfile = async () => {
     try {
+      setLoading(true)
+      
+      // First check if the user exists
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError) throw userError
+      if (!userData?.user?.id) throw new Error('No authenticated user')
+
+      // Then get the profile
       const { data, error } = await supabase
         .from('profiles')
         .select('username')
-        .eq('id', session.user.id)
+        .eq('id', userData.user.id)
         .single()
 
-      if (error) throw error
-      setUsername(data.username)
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // Profile doesn't exist, create it
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert([{ id: userData.user.id }])
+          if (insertError) throw insertError
+          setUsername('')
+        } else {
+          throw error
+        }
+      } else if (data) {
+        setUsername(data.username || '')
+      }
     } catch (error) {
       console.error('Error loading profile:', error)
+      setError(error.message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -230,7 +253,7 @@ export default function Profile({ session }) {
         ) : (
           <div className="space-y-4">
             <p className={`${theme.text}`}>
-              To confirm deletion, please type "delete my account" below:
+              To confirm deletion, please type "DELETE" below:
             </p>
             <input
               type="text"

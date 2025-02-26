@@ -16,44 +16,20 @@ DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;
 DROP TRIGGER IF EXISTS update_code_segments_updated_at ON public.code_segments;
 
 -- Recreate policies for profiles
-CREATE POLICY "Public profiles are viewable by everyone" 
-    ON public.profiles FOR SELECT 
+CREATE POLICY "Enable read access for all users"
+    ON public.profiles FOR SELECT
     USING (true);
 
-CREATE POLICY "Users can insert their own profile" 
-    ON public.profiles FOR INSERT 
-    TO authenticated 
+CREATE POLICY "Enable insert access for authenticated users only"
+    ON public.profiles FOR INSERT
+    TO authenticated
     WITH CHECK (auth.uid() = id);
 
-CREATE POLICY "Users can update their own profile" 
-    ON public.profiles FOR UPDATE 
-    TO authenticated 
-    USING (auth.uid() = id);
-
--- Recreate policies for code_segments
-CREATE POLICY "Users can create their own code segments"
-    ON public.code_segments
-    FOR INSERT
+CREATE POLICY "Enable update access for users based on id"
+    ON public.profiles FOR UPDATE
     TO authenticated
-    WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can view their own code segments"
-    ON public.code_segments
-    FOR SELECT
-    TO authenticated
-    USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can update their own code segments"
-    ON public.code_segments
-    FOR UPDATE
-    TO authenticated
-    USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete their own code segments"
-    ON public.code_segments
-    FOR DELETE
-    TO authenticated
-    USING (auth.uid() = user_id);
+    USING (auth.uid() = id)
+    WITH CHECK (auth.uid() = id);
 
 -- Recreate triggers using the moddatetime extension
 CREATE TRIGGER update_profiles_updated_at 

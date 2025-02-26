@@ -62,20 +62,27 @@ function Dashboard({ session }) {
       try {
         const { data: savedContent, error } = await supabase
           .from('code_segments')
-          .select('content')
+          .select('file_path')
           .eq('user_id', session.user.id)
           .eq('segment_type', 'component')
           .single();
 
-        if (error) throw error;
+        if (error && error.code !== 'PGRST116') throw error;
         
-        if (savedContent) {
-          if (savedContent.content) {
-            // setContent(savedContent.content);
-          }
+        if (savedContent?.file_path) {
+          // Download the code content
+          const { data, error: downloadError } = await supabase.storage
+            .from('code-segments')
+            .download(savedContent.file_path)
+
+          if (downloadError) throw downloadError;
+
+          // Read the file content
+          const content = await data.text();
+          // setContent(content);
         }
       } catch (error) {
-        console.error('Error loading content:', error);
+        console.error('Error loading content:', error, data);
       }
     }
     loadSavedContent();
@@ -119,18 +126,45 @@ function Dashboard({ session }) {
     if (titleSaving || !session?.user?.id) return;
     setTitleSaving(true);
     try {
-      const { error } = await supabase
+      // First check if a code segment exists
+      const { data: existingSegment, error: queryError } = await supabase
         .from('code_segments')
-        .update({ 
-          title: newTitle,
-          updated_at: new Date().toISOString()
-        })
+        .select('id')
         .eq('user_id', session.user.id)
         .eq('segment_type', 'component')
         .order('updated_at', { ascending: false })
-        .limit(1);
+        .limit(1)
+        .single();
 
-      if (error) throw error;
+      if (queryError && queryError.code !== 'PGRST116') throw queryError;
+
+      if (!existingSegment) {
+        // No existing segment, create one
+        const { error: insertError } = await supabase
+          .from('code_segments')
+          .insert({
+            user_id: session.user.id,
+            segment_type: 'component',
+            title: newTitle,
+            language: 'jsx',
+            is_public: false,
+            updated_at: new Date().toISOString()
+          });
+
+        if (insertError) throw insertError;
+      } else {
+        // Update existing segment
+        const { error: updateError } = await supabase
+          .from('code_segments')
+          .update({ 
+            title: newTitle,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingSegment.id);
+
+        if (updateError) throw updateError;
+      }
+
       setEditorTitle(newTitle);
     } catch (error) {
       console.error('Error saving title:', error);
@@ -252,12 +286,12 @@ function Dashboard({ session }) {
                 </div>
                 <button
                   onClick={() => setShowEditor(!showEditor)}
-                  className={`px-4 py-2 ${theme.button} text-white rounded-lg transition-colors duration-200 flex items-center space-x-2 hover:opacity-90`}
+                  className={`p-2 text-sm ${theme.text} opacity-60 hover:opacity-100 transition-all duration-200 flex items-center gap-1 rounded`}
                 >
                   <span>{showEditor ? 'Hide' : 'Show'} Editor</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
-                    className={`h-5 w-5 transition-transform duration-200 ${showEditor ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 transition-transform duration-200 ${showEditor ? 'rotate-180' : ''}`}
                     viewBox="0 0 20 20" 
                     fill="currentColor"
                   >

@@ -4,7 +4,8 @@ const themes = {
   light: {
     background: 'bg-gradient-to-br from-blue-50 to-indigo-50',
     nav: 'bg-white',
-    button: 'bg-blue-600 hover:bg-blue-700',
+    button: 'bg-blue-400 hover:bg-blue-500',
+    'button-text': 'text-white',
     text: 'text-gray-900',
     secondaryText: 'text-gray-700',
     toggleButton: 'bg-indigo-100 hover:bg-indigo-200 text-gray-700',
@@ -24,7 +25,8 @@ const themes = {
   dark: {
     background: 'bg-slate-900',
     nav: 'bg-slate-800',
-    button: 'bg-blue-600 hover:bg-blue-700',
+    button: 'bg-blue-300 hover:bg-blue-400',
+    'button-text': 'text-slate-900',
     text: 'text-white',
     secondaryText: 'text-gray-200',
     toggleButton: 'bg-slate-700 hover:bg-slate-600 text-white',
